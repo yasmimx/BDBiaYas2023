@@ -1,10 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Crypto.Digests;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AppBanco
 {
@@ -15,6 +10,7 @@ namespace AppBanco
         static void Main(string[] args)
         {
             Banco db = new Banco();
+            UsuarioDAO ObjDao = new UsuarioDAO();
             db.Open();
 
             MySqlConnection Conexao = new MySqlConnection(@"Server = Localhost; database = dbAppBanco; user = root; password = 12345678");
@@ -29,20 +25,15 @@ namespace AppBanco
             Console.WriteLine("Informe a data de nascimento: ");
             string strDataNasc = Console.ReadLine();
 
-            string strInsert = string.Format("insert into tbUsuario(NomeUsu, Cargo, DataNasc)" +
-                                             "values('{0}', '{1}', STR_TO_DATE('{2}', '%d/%m/%Y'));", strNomeUsu, strCargo, strDataNasc);
+            db.Open();
 
-            string strUpdate = "update tbUsuario set NomeUsu = 'João' where IdUsu = 4;";
-            MySqlCommand ObjCommandU = new MySqlCommand(strUpdate, Conexao);
-            ObjCommandU.ExecuteNonQuery();
+            ObjDao.Update(strIdUsu, strNomeUsu, strCargo, strDataNasc);
+            ObjDao.Insert(strNomeUsu, strCargo, strDataNasc);
 
+            db.Open();
             string strDelete = "delete from tbUsuario where IdUsu = 3;";
-            MySqlCommand ObjCommandD = new MySqlCommand(strDelete, Conexao);
-            ObjCommandD.ExecuteNonQuery();
+            db.ExecuteNowdSql(strDelete);
 
-            //string strInsert = "insert into tbUsuario(NomeUsu, Cargo, DataNasc) values ('Fulano', 'Aluno', '2023/05/10');";
-            MySqlCommand ObjCommandI = new MySqlCommand(strInsert, Conexao);
-            ObjCommandI.ExecuteNonQuery();
 
             string strSelect = "select * from tbUsuario;";
 
@@ -52,15 +43,25 @@ namespace AppBanco
       
 
             MySqlDataReader leitor = db.ExecuteReadSql(strSelect);
-
+            db.Open();
             while (leitor.Read())
             {
                 Console.WriteLine("Código = {0} | Nome= {1} | Cargo = {2} | Nascimento = {3}",
                     leitor["IdUsu"], leitor["NomeUsu"], leitor["Cargo"],leitor["DataNasc"]);
             }
             leitor.Close();
+
+            Console.WriteLine("Informe o id para identificação:");
+            string IdUsu = Console.ReadLine();
+            string strSelectId = "SELECT NomeUsu FROM tbusuario Where IdUsu =" + IdUsu + ";";
+            string strDado = db.ExecuteScalarSQL(strSelectId);
+            Console.WriteLine("Ola senhor(a)" + strDado);
+
+            db.Open();
             Console.ReadLine(); 
+            db.Close();
 
         }
+
     }
 }
